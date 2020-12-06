@@ -118,6 +118,10 @@ function core.register_item(name, itemdef)
 	end
 	itemdef.name = name
 
+	-- default short_description to first line of description
+	itemdef.short_description = itemdef.short_description or
+		(itemdef.description or ""):gsub("\n.*","")
+
 	-- Apply defaults and add to registered_* table
 	if itemdef.type == "node" then
 		-- Use the nodebox as selection box if it's not set manually
@@ -256,6 +260,18 @@ function core.register_tool(name, tooldef)
 	end
 	-- END Legacy stuff
 
+	-- This isn't just legacy, but more of a convenience feature
+	local toolcaps = tooldef.tool_capabilities
+	if toolcaps and toolcaps.punch_attack_uses == nil then
+		for _, cap in pairs(toolcaps.groupcaps or {}) do
+			local level = (cap.maxlevel or 0) - 1
+			if (cap.uses or 0) ~= 0 and level >= 0 then
+				toolcaps.punch_attack_uses = cap.uses * (3 ^ level)
+				break
+			end
+		end
+	end
+
 	core.register_item(name, tooldef)
 end
 
@@ -309,11 +325,11 @@ for name in pairs(forbidden_item_names) do
 end
 
 
--- Deprecated:
+-- Obsolete:
 -- Aliases for core.register_alias (how ironic...)
---core.alias_node = core.register_alias
---core.alias_tool = core.register_alias
---core.alias_craftitem = core.register_alias
+-- core.alias_node = core.register_alias
+-- core.alias_tool = core.register_alias
+-- core.alias_craftitem = core.register_alias
 
 --
 -- Built-in node definitions. Also defined in C.
@@ -373,6 +389,7 @@ core.register_node(":ignore", {
 -- The hand (bare definition)
 core.register_item(":", {
 	type = "none",
+	wield_image = "wieldhand.png",
 	groups = {not_in_creative_inventory=1},
 })
 
@@ -571,6 +588,7 @@ core.unregister_biome = make_wrap_deregistration(core.register_biome,
 		core.clear_registered_biomes, core.registered_biomes)
 
 core.registered_on_chat_messages, core.register_on_chat_message = make_registration()
+core.registered_on_chatcommands, core.register_on_chatcommand = make_registration()
 core.registered_globalsteps, core.register_globalstep = make_registration()
 core.registered_playerevents, core.register_playerevent = make_registration()
 core.registered_on_mods_loaded, core.register_on_mods_loaded = make_registration()
@@ -594,9 +612,9 @@ core.registered_on_item_eats, core.register_on_item_eat = make_registration()
 core.registered_on_punchplayers, core.register_on_punchplayer = make_registration()
 core.registered_on_priv_grant, core.register_on_priv_grant = make_registration()
 core.registered_on_priv_revoke, core.register_on_priv_revoke = make_registration()
+core.registered_on_authplayers, core.register_on_authplayer = make_registration()
 core.registered_can_bypass_userlimit, core.register_can_bypass_userlimit = make_registration()
 core.registered_on_modchannel_message, core.register_on_modchannel_message = make_registration()
-core.registered_on_auth_fail, core.register_on_auth_fail = make_registration()
 core.registered_on_player_inventory_actions, core.register_on_player_inventory_action = make_registration()
 core.registered_allow_player_inventory_actions, core.register_allow_player_inventory_action = make_registration()
 
